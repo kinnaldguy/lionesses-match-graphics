@@ -1,0 +1,25 @@
+{
+  "dateLabel": "Sun 27th Sep · TBC",
+  "matchType": "League game",
+  "competition": {
+    "line1": "West Riding County",
+    "line2": "Women's FL · Division Four",
+    "logo": "assets/logos/wrcwfl.png"
+  },
+  "venue": [
+    "Venue TBC",
+    ""
+  ],
+  "weAreHome": true,
+  "kit": "home",
+  "opponent": {
+    "fullName": "Guiseley GFC Lionesses Development",
+    "shortName": "Guiseley Devs",
+    "crest": "assets/teams/guiseley-devs.png",
+    "shirt": "#F2C230",
+    "text": "#111111"
+  },
+  "footyosCsv": "footyos.csv",
+  "still": "still.jpg",
+  "fps": 30
+}
