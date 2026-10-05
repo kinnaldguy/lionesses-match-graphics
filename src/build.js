@@ -240,6 +240,7 @@ events.forEach((e, i) => {
     '',
     '1) MARKERS',
     '   Put the full Falcon clip on a new timeline starting at 01:00:00:00 (Resolve default), untrimmed.',
+    `   On the MEDIA page (not Edit), right-click the timeline in the Media Pool:`,
     `   Timelines > Import > Timeline Markers from EDL > ${edlName}`,
     '   Green = our goal, Red = their goal, Blue = save, Yellow = shot, Purple = sub, Cream = KO/HT/FT.',
     '   Use the markers BEFORE cutting anything. Markers are when the event was logged - the ball usually goes in a few seconds earlier.',

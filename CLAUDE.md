@@ -65,6 +65,7 @@ Steps:
 
 - Footage is 3840×2160 at 30 fps; PNGs are rendered at that size.
 - The marker EDL assumes the untrimmed clip starts at 01:00:00:00 on the timeline.
-  Import via Timelines > Import > Timeline Markers from EDL.
+  Import on the Media page (the Edit page's right-click menu doesn't have it): right-click the timeline in the
+  Media Pool > Timelines > Import > Timeline Markers from EDL. Confirmed in Resolve 21.
 - Marker and score timings are when the event was logged in FootyOS, usually a few seconds after the
   ball went in.
