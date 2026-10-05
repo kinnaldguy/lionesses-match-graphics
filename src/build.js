@@ -249,20 +249,22 @@ events.forEach((e, i) => {
     if (f && fs.existsSync(path.join(ROOT, f))) fs.copyFileSync(path.join(ROOT, f), path.join(gfx, 'logo_' + path.basename(f)));
   }
   const edlName = `${path.basename(matchDir)}_markers.edl`;
-  fs.writeFileSync(path.join(gfx, edlName), edl.join('\r\n'));
+  if (!match.goalsOnly) fs.writeFileSync(path.join(gfx, edlName), edl.join('\r\n'));
 
   const clockLines = periods.map((p) => `   ${p.tag}: starts at video ${p.at}, counting up from ${String(p.clockFrom).padStart(2, '0')}:00.`);
   fs.writeFileSync(path.join(gfx, 'HOW_TO_USE.txt'), [
     `${home.fullName} v ${away.fullName} - Resolve pack`,
     'PNGs are 3840x2160. Score bugs and goal pop-ups are transparent; intro and line-up cards are full-frame.',
     '',
-    '1) MARKERS',
-    '   Put the full Falcon clip on a new timeline starting at 01:00:00:00 (Resolve default), untrimmed.',
-    `   On the MEDIA page (not Edit), right-click the timeline in the Media Pool:`,
-    `   Timelines > Import > Timeline Markers from EDL > ${edlName}`,
-    '   Green = our goal, Red = their goal, Blue = save, Yellow = shot, Purple = sub, Cream = KO/HT/FT.',
-    '   Use the markers BEFORE cutting anything. Markers are when the event was logged - the ball usually goes in a few seconds earlier.',
-    '',
+    ...(match.goalsOnly ? ['1) MARKERS - none for this match (older tracker; times below are approximate, from the match minute).', ''] : [
+      '1) MARKERS',
+      '   Put the full Falcon clip on a new timeline starting at 01:00:00:00 (Resolve default), untrimmed.',
+      `   On the MEDIA page (not Edit), right-click the timeline in the Media Pool:`,
+      `   Timelines > Import > Timeline Markers from EDL > ${edlName}`,
+      '   Green = our goal, Red = their goal, Blue = save, Yellow = shot, Purple = sub, Cream = KO/HT/FT.',
+      '   Use the markers BEFORE cutting anything. Markers are when the event was logged - the ball usually goes in a few seconds earlier.',
+      '',
+    ]),
     '2) SCORE BUG (top video track; covers the XbotGo scoreboard and watermark)',
     '   Video time in the original file:',
     ...howBug,

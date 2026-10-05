@@ -44,7 +44,7 @@ Steps:
 | `lineup` | Ignored when the CSV has Starting XI rows. Otherwise `[number, name, optional position label]` in formation order: GK, back line **right to left**, then each line further forward right to left, striker last |
 | `subs` | `[number, name]` |
 | `kickOffAt` | Timeline timecode where kick-off really is in Resolve, e.g. `"01:03:42:15"`. FootyOS times are offset from the footage, so every marker and timing is shifted to match. Ask Dave for it |
-| `goalsOnly` | `true` for matches logged on the older FootyOS tracker: only goals, periods and the line-up are used (no sub pop-ups, no save/shot/sub markers) |
+| `goalsOnly` | `true` for matches logged on the older FootyOS tracker: only goals, periods and the line-up are used: no sub pop-ups and no marker EDL |
 | `halfLength`, `extraTimeLength` | Minutes; default 45 and 15. Drive the clock start values in HOW_TO_USE |
 
 ## Design rules (agreed with Dave — don't change without asking)
