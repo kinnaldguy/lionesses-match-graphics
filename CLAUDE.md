@@ -12,7 +12,9 @@ Dave will send some or all of:
 - opponent full name, the short name for the score bug, crest file, kit colours
 - venue, date and kick-off, competition (league or cup)
 - home or away (decides background and our kit colours)
-- formation and the XI in formation order (see below), plus subs
+- formation and the XI in formation order (see below), plus subs — **not needed** when the FootyOS
+  export has "Formation" / "Starting XI" / "Bench" rows (added on FootyOS branch
+  `claude/export-lineup-positions`); the build then takes the line-up and pitch spots from the CSV
 - a still from the footage (optional, used for previews)
 
 Steps:
@@ -39,7 +41,7 @@ Steps:
 | `opponent.fullName` / `introName` | `introName` may contain `<br>` to control line breaks on the intro card |
 | `opponent.shirt` / `text` | Their shirt colour and a readable text colour on it |
 | `formation` | `4-4-1-1`, `4-2-3-1`, `4-3-3`, `4-4-2` or `3-5-2` (spots are in `FORMATIONS` in `src/templates.html`) |
-| `lineup` | `[number, name, optional position label]` in formation order: GK, back line **right to left**, then each line further forward right to left, striker last |
+| `lineup` | Ignored when the CSV has Starting XI rows. Otherwise `[number, name, optional position label]` in formation order: GK, back line **right to left**, then each line further forward right to left, striker last |
 | `subs` | `[number, name]` |
 | `halfLength`, `extraTimeLength` | Minutes; default 45 and 15. Drive the clock start values in HOW_TO_USE |
 

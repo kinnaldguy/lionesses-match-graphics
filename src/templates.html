@@ -156,7 +156,20 @@ const FORMATIONS = {
 
 function lineup(D) {
   const xi = D.match.lineup;
-  const spots = FORMATIONS[D.match.formation] || FORMATIONS['4-4-1-1'];
+  // Pitch spots straight from FootyOS lineup anchors when the export has them (same grid as the
+  // FootyOS tracker: 7 columns left to right, rows top = attack), otherwise from FORMATIONS.
+  const COLS = [8, 22, 36, 50, 64, 78, 92];
+  const rowOf = (a) => +((/^R(\d+)C/.exec(a || '') || [])[1]);
+  const rows = [...new Set(xi.map((p) => rowOf(p[3])).filter((r) => !isNaN(r)))].sort((a, b) => a - b);
+  const fromAnchor = (a) => {
+    if (a === 'GK') return [50, 91];
+    const m = /^R(\d+)C(\d+)$/.exec(a || '');
+    if (!m) return null;
+    const i = rows.indexOf(+m[1]);
+    return [COLS[+m[2]] ?? 50, rows.length > 1 ? 15 + i * (76 - 15) / (rows.length - 1) : 45];
+  };
+  const useAnchors = xi.every((p) => p[3] && fromAnchor(p[3]));
+  const spots = useAnchors ? xi.map((p) => fromAnchor(p[3])) : (FORMATIONS[D.match.formation] || FORMATIONS['4-4-1-1']);
   const surname = (n) => n.split(' ').slice(-1)[0];
   const line = 'rgba(255,255,255,.55)';
   const pitch = `

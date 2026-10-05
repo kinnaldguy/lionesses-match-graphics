@@ -48,6 +48,18 @@ const FPS = match.fps || 30;
 const tcToFrames = (tc) => { const [h, m, s, f] = tc.split(':').map(Number); return ((h * 60 + m) * 60 + s) * FPS + f; };
 const framesToTc = (n) => { const f = n % FPS, s = Math.floor(n / FPS); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f].map((v) => String(v).padStart(2, '0')).join(':'); };
 
+// ---------- Line-up from the export (FootyOS adds these rows when the line-up is set) ----------
+// Rows with Event "Formation", "Starting XI" and "Bench" override match.json. Starting XI rows carry
+// a Position label and a Pitch spot (lineup grid anchor: GK or R<row>C<col>).
+const csvXi = events.filter((e) => e['Event'] === 'Starting XI');
+if (csvXi.length) {
+  const split = (ref) => { const m = (ref || '').match(/^#(\d+)\s+(.*)$/); return m ? [m[1], m[2]] : ['', ref || '']; };
+  const formationRow = events.find((e) => e['Event'] === 'Formation');
+  if (formationRow && formationRow['Player']) match.formation = formationRow['Player'];
+  match.lineup = csvXi.map((e) => [...split(e['Player']), e['Position'] || '', e['Pitch spot'] || '']);
+  match.subs = events.filter((e) => e['Event'] === 'Bench').map((e) => split(e['Player']));
+}
+
 // ---------- Teams ----------
 const kit = club.kits[match.kit || (match.weAreHome ? 'home' : 'away')];
 const ours = {
@@ -260,8 +272,9 @@ for f in sorted(os.listdir(sys.argv[2])): z.write(os.path.join(sys.argv[2],f),f)
 z.close()`, zip, gfx]);
 
   console.log(`Score: ${scoreLine()}`);
+  console.log(`Line-up: ${match.formation || '?'} from ${csvXi.length ? 'the FootyOS export' : 'match.json'}`);
   console.log(`Score bug states: ${states.length}, goal pop-ups: ${goals.length} (ours ${goals.filter((g) => g.side === 'ours').length}), subs: ${subs.length}, markers: ${events.filter((e) => e['Timecode']).length}`);
-  const unknown = [...new Set(events.map((e) => e['Event']))].filter((l) => !periodFor(l) && !goalSide(l) && !/save|shot|^sub|half time|full time/i.test(l));
+  const unknown = [...new Set(events.map((e) => e['Event']))].filter((l) => !periodFor(l) && !goalSide(l) && !/save|shot|^sub|half time|full time|^formation$|^starting xi$|^bench$/i.test(l));
   if (unknown.length) console.log('Unrecognised FootyOS event labels (check they are not goals):', unknown.join(', '));
   console.log('Pack:', zip);
 })();
