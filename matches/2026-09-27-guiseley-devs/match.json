@@ -1,5 +1,5 @@
 {
-  "dateLabel": "Sun 27th Sep · TBC",
+  "dateLabel": "Sun 27th Sep · 2:00pm",
   "matchType": "League game",
   "competition": {
     "line1": "West Riding County",
@@ -7,8 +7,8 @@
     "logo": "assets/logos/wrcwfl.png"
   },
   "venue": [
-    "Venue TBC",
-    ""
+    "Lightcliffe Academy, Stoney Lane",
+    "Lightcliffe, Halifax HX3 8TL"
   ],
   "weAreHome": true,
   "kit": "home",
@@ -21,5 +21,6 @@
   },
   "footyosCsv": "footyos.csv",
   "still": "still.jpg",
-  "fps": 30
+  "fps": 30,
+  "goalsOnly": true
 }

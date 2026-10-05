@@ -43,7 +43,9 @@ function parseCsv(text) {
   return body.map((r) => Object.fromEntries(head.map((h, i) => [h.replace(/^﻿/, '').trim(), (r[i] || '').trim()])));
 }
 
-const events = parseCsv(fs.readFileSync(path.join(matchDir, match.footyosCsv || 'footyos.csv'), 'utf8'));
+let events = parseCsv(fs.readFileSync(path.join(matchDir, match.footyosCsv || 'footyos.csv'), 'utf8'));
+// "goalsOnly": older tracker exports - keep goals, periods and the line-up; drop subs, saves and shots.
+if (match.goalsOnly) events = events.filter((e) => !/^sub|save|shot/i.test(e['Event']));
 const FPS = match.fps || 30;
 const tcToFrames = (tc) => { const [h, m, s, f] = tc.split(':').map(Number); return ((h * 60 + m) * 60 + s) * FPS + f; };
 const framesToTc = (n) => { const f = n % FPS, s = Math.floor(n / FPS); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f].map((v) => String(v).padStart(2, '0')).join(':'); };
