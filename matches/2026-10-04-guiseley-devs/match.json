@@ -89,5 +89,6 @@
   ],
   "footyosCsv": "footyos.csv",
   "still": "still.jpg",
-  "fps": 30
+  "fps": 30,
+  "kickOffAt": "01:03:42:15"
 }

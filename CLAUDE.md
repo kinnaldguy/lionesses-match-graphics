@@ -43,6 +43,7 @@ Steps:
 | `formation` | `4-4-1-1`, `4-2-3-1`, `4-3-3`, `4-4-2` or `3-5-2` (spots are in `FORMATIONS` in `src/templates.html`) |
 | `lineup` | Ignored when the CSV has Starting XI rows. Otherwise `[number, name, optional position label]` in formation order: GK, back line **right to left**, then each line further forward right to left, striker last |
 | `subs` | `[number, name]` |
+| `kickOffAt` | Timeline timecode where kick-off really is in Resolve, e.g. `"01:03:42:15"`. FootyOS times are offset from the footage, so every marker and timing is shifted to match. Ask Dave for it |
 | `halfLength`, `extraTimeLength` | Minutes; default 45 and 15. Drive the clock start values in HOW_TO_USE |
 
 ## Design rules (agreed with Dave — don't change without asking)

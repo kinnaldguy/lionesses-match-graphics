@@ -48,6 +48,22 @@ const FPS = match.fps || 30;
 const tcToFrames = (tc) => { const [h, m, s, f] = tc.split(':').map(Number); return ((h * 60 + m) * 60 + s) * FPS + f; };
 const framesToTc = (n) => { const f = n % FPS, s = Math.floor(n / FPS); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f].map((v) => String(v).padStart(2, '0')).join(':'); };
 
+// ---------- Sync to the footage ----------
+// FootyOS times are from when its own recording started, which isn't when the Falcon started filming.
+// match.json "kickOffAt" is the timeline timecode where kick-off really is in Resolve (timeline starting
+// at 01:00:00:00, clip untrimmed); every marker and timing is moved by the same amount.
+const koRow = events.find((e) => /^kick-?off$/i.test(e['Event']) && e['Timecode']);
+const offset = match.kickOffAt && koRow ? tcToFrames(match.kickOffAt) - tcToFrames(koRow['Timecode']) : 0;
+if (match.kickOffAt && !koRow) console.warn('kickOffAt is set but the export has no Kick-off row with a timecode, so nothing was shifted.');
+for (const e of events) {
+  if (e['Timecode']) e['Timecode'] = framesToTc(tcToFrames(e['Timecode']) + offset);
+  if (e['Video time']) {
+    const [h, m, sec] = e['Video time'].split(':').map(Number);
+    const t = Math.round(h * 3600 + m * 60 + sec + offset / FPS);
+    e['Video time'] = `${Math.floor(t / 3600)}:${String(Math.floor(t / 60) % 60).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+  }
+}
+
 // ---------- Line-up from the export (FootyOS adds these rows when the line-up is set) ----------
 // Rows with Event "Formation", "Starting XI" and "Bench" override match.json. Starting XI rows carry
 // a Position label and a Pitch spot (lineup grid anchor: GK or R<row>C<col>).
@@ -273,6 +289,7 @@ for f in sorted(os.listdir(sys.argv[2])): z.write(os.path.join(sys.argv[2],f),f)
 z.close()`, zip, gfx]);
 
   console.log(`Score: ${scoreLine()}`);
+  console.log(offset ? `Synced: kick-off moved to ${match.kickOffAt} (${offset > 0 ? '+' : '-'}${framesToTc(Math.abs(offset))} on every time)` : 'Synced: no kickOffAt in match.json, times are as FootyOS logged them');
   console.log(`Line-up: ${match.formation || '?'} from ${csvXi.length ? 'the FootyOS export' : 'match.json'}`);
   console.log(`Score bug states: ${states.length}, goal pop-ups: ${goals.length} (ours ${goals.filter((g) => g.side === 'ours').length}), subs: ${subs.length}, markers: ${events.filter((e) => e['Timecode']).length}`);
   const unknown = [...new Set(events.map((e) => e['Event']))].filter((l) => !periodFor(l) && !goalSide(l) && !/save|shot|^sub|half time|full time|^formation$|^starting xi$|^bench$/i.test(l));
