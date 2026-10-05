@@ -1,0 +1,11 @@
+{
+  "name": "lionesses-match-graphics",
+  "private": true,
+  "description": "DaVinci Resolve graphics packs for Halifax Friendly FC Lionesses matches",
+  "scripts": {
+    "build": "node src/build.js"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}

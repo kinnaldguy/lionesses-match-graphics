@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: 'Anton'; src: url('../assets/fonts/Anton.ttf'); }
+@font-face { font-family: 'BC'; src: url('../assets/fonts/BarlowCondensed-Medium.ttf'); font-weight: 500; }
+@font-face { font-family: 'BC'; src: url('../assets/fonts/BarlowCondensed-SemiBold.ttf'); font-weight: 600; }
+@font-face { font-family: 'BC'; src: url('../assets/fonts/BarlowCondensed-Bold.ttf'); font-weight: 700; }
+html, body { margin: 0; background: transparent; }
+#stage { width: 1920px; height: 1080px; position: relative; overflow: hidden; color: #fff; font-family: 'BC', sans-serif; }
+.anton { font-family: 'Anton', sans-serif; }
+.abs { position: absolute; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// Every graphic is drawn on a 1920x1080 stage; build.js screenshots it at 2x for 3840x2160.
+// D is the data object build.js passes in: club, match, ours/theirs kits, home/away team, and the
+// graphic-specific fields. Asset paths in D are already absolute file:// URLs.
+
+const rand = (i, seed) => Math.abs(Math.sin((i + seed) * 12.9898) * 43758.5453) % 1;
+
+function mosaic(cols, rows, size, palette, seed) {
+  let t = '';
+  for (let i = 0; i < cols * rows; i++) t += `<div style="background:${palette[Math.floor(rand(i, seed) * palette.length)]}"></div>`;
+  return `<div style="position:absolute;left:0;top:0;display:grid;grid-template-columns:repeat(${cols},${size}px);grid-auto-rows:${size}px">${t}</div>`;
+}
+
+function backdrop(D) {
+  return `
+  <div class="abs" style="inset:0;background:${D.kit.backgroundBase}"></div>
+  <div class="abs" style="inset:0">${mosaic(48, 27, 40, D.kit.background, 0)}</div>
+  <div class="abs" style="inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,0) 35%,rgba(0,0,0,.55) 100%)"></div>
+  <div class="abs" style="left:24px;top:24px;right:24px;bottom:24px;border:3px solid #fff"></div>`;
+}
+
+function competitionBadge(D, logoH) {
+  const c = D.match.competition;
+  return `<div class="abs" style="right:72px;top:56px;display:flex;align-items:center;gap:18px">
+    <div style="text-align:right;font-weight:700;font-size:22px;letter-spacing:5px;text-transform:uppercase;opacity:.85"><div>${c.line1}</div><div>${c.line2}</div></div>
+    ${c.logo ? `<img src="${c.logo}" style="height:${logoH}px">` : ''}
+  </div>`;
+}
+
+const still = (D) => D.still ? `<img class="abs" src="${D.still}" style="left:0;top:0;width:1920px;height:1080px;object-fit:cover">` : '';
+
+// A team's block in the score bug: our block carries the shirt's pixel pattern.
+function teamBlock(team, align) {
+  const pattern = team.pixels ? mosaic(30, 8, 12, team.pixels, 7) : '';
+  return `<div class="anton" style="position:relative;overflow:hidden;background:${team.shirt};color:${team.text};display:flex;align-items:center;justify-content:${align};padding:0 24px;font-size:38px;letter-spacing:1px;white-space:nowrap">${pattern}<span style="position:relative;${team.pixels ? 'text-shadow:0 2px 6px rgba(0,0,0,.45)' : ''}">${team.shortName.toUpperCase()}</span></div>`;
+}
+
+function sponsorGroup(list) {
+  return `<div style="display:flex;align-items:center;justify-content:space-around">${list.map((s) => s.whitePanel
+    ? `<div style="background:#fff;border-radius:6px;height:40px;padding:0 10px;display:flex;align-items:center"><img src="${s.logo}" style="height:${s.height}px"></div>`
+    : `<img src="${s.logo}" style="height:${s.height}px">`).join('')}</div>`;
+}
+
+// Score bug. It deliberately covers the XbotGo scoreboard (top-left, about 750x145 at 1920 wide)
+// and the XbotGo watermark (bottom-right) — keep both panels at least this big.
+function scorebug(D) {
+  return `${still(D)}
+  <div class="abs" style="left:10px;top:10px;width:800px;display:flex;flex-direction:column;box-shadow:0 8px 28px rgba(0,0,0,.45);border:2px solid #fff">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 170px minmax(0,1fr);height:84px">
+      ${teamBlock(D.home, 'flex-start')}
+      <div style="background:#fff;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:2px solid #111;border-right:2px solid #111">
+        <div style="font-size:17px;font-weight:700;letter-spacing:3px;line-height:1;color:#555">${D.period}</div>
+        <div class="anton" style="display:flex;gap:12px;font-size:44px;line-height:1.05"><span>${D.homeScore}</span><span style="opacity:.4">–</span><span>${D.awayScore}</span></div>
+      </div>
+      ${teamBlock(D.away, 'flex-end')}
+    </div>
+    <div style="height:60px;background:#111;display:grid;grid-template-columns:minmax(0,1fr) 170px minmax(0,1fr);align-items:center">
+      ${sponsorGroup(D.club.sponsorBar.left)}
+      <div class="anton" style="text-align:center;font-size:36px;border-left:2px solid #111;border-right:2px solid #111;background:#1d1d1d;height:60px;line-height:60px">${D.clock || ''}</div>
+      ${sponsorGroup(D.club.sponsorBar.right)}
+    </div>
+  </div>
+  <div class="abs" style="right:24px;bottom:20px;width:300px;height:92px;box-sizing:border-box;background:#fff;border:2px solid #111;box-shadow:0 6px 20px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;gap:22px">
+    <img src="${D.club.crest}" style="height:70px">
+    <div style="width:1px;height:58px;background:#ccc"></div>
+    <img src="${D.club.campaignLogo}" style="height:62px">
+  </div>`;
+}
+
+const shirtIcon = (fill, trim, stroke, size, num) => `<svg width="${size}" height="${size}" viewBox="0 0 40 40"><path d="M13 4 L8 6 L2 13 L7 19 L10 16 L10 37 L30 37 L30 16 L33 19 L38 13 L32 6 L27 4 Q20 10 13 4 Z" fill="${fill}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6 L2 13 L7 19 L10 16 L10 9 Z M32 6 L38 13 L33 19 L30 16 L30 9 Z" fill="${trim}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"/>${num ? `<text x="20" y="29" text-anchor="middle" font-family="Anton" font-size="13" fill="${stroke}">${num}</text>` : ''}</svg>`;
+
+function goalOurs(D) {
+  const g = D.goal;
+  return `${still(D)}
+  <div class="abs" style="left:64px;bottom:150px;display:flex;height:124px;box-shadow:0 8px 28px rgba(0,0,0,.45);border:3px solid #fff">
+    <div style="position:relative;overflow:hidden;background:${D.ours.shirt};color:#fff;display:flex;align-items:center;gap:20px;padding:0 36px 0 28px">
+      ${mosaic(36, 11, 12, D.ours.pixels, 3)}
+      <div style="position:relative;display:flex;align-items:center;gap:20px">
+        ${shirtIcon(D.ours.shirt, D.ours.pixels[4], '#fff', 74, g.number)}
+        <div class="anton" style="font-size:74px;letter-spacing:3px;text-shadow:0 2px 8px rgba(0,0,0,.4)">GOAL!</div>
+      </div>
+    </div>
+    <div style="background:#fff;color:#111;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:0 38px">
+      <div class="anton" style="font-size:48px;line-height:1;text-transform:uppercase">${g.name} <span style="color:${D.ours.shirt}">${g.minute}</span></div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#555">${g.assist ? `Assist: ${g.assist} · ` : ''}${D.scoreLine}</div>
+    </div>
+  </div>`;
+}
+
+function goalTheirs(D) {
+  const t = D.theirs;
+  return `${still(D)}
+  <div class="abs" style="left:64px;bottom:150px;display:flex;height:66px;box-shadow:0 6px 24px rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.8)">
+    <div class="anton" style="background:${t.shirt};color:${t.text};display:flex;align-items:center;padding:0 22px;font-size:28px;letter-spacing:2px">GOAL · ${t.shortName.toUpperCase()} ${D.goal.minute}</div>
+    <div style="background:rgba(17,17,17,.92);display:flex;align-items:center;padding:0 24px">
+      <div style="font-size:22px;font-weight:600;letter-spacing:3px;text-transform:uppercase;opacity:.85">${D.scoreLine}</div>
+    </div>
+  </div>`;
+}
+
+function intro(D) {
+  const side = (team) => `<div style="display:flex;flex-direction:column;align-items:center;gap:28px;width:560px">
+      ${team.crest ? `<img src="${team.crest}" style="height:300px;filter:drop-shadow(0 16px 30px rgba(0,0,0,.45))">`
+        : `<div class="anton" style="width:280px;height:280px;border-radius:50%;border:6px solid #fff;display:flex;align-items:center;justify-content:center;font-size:96px">${team.shortName.slice(0, 3).toUpperCase()}</div>`}
+      <div class="anton" style="font-size:66px;line-height:1.05;text-transform:uppercase;text-align:center;text-shadow:0 4px 14px rgba(0,0,0,.45)">${team.introName}</div>
+    </div>`;
+  const cell = (k, v, border) => `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;${border ? 'border-left:1px solid #ddd' : ''}"><div style="font-weight:700;font-size:20px;letter-spacing:7px;text-transform:uppercase;color:#6b6b6b">${k}</div><div style="font-weight:700;font-size:32px;text-align:center;line-height:1.15">${v}</div></div>`;
+  return `${backdrop(D)}
+  <div class="abs" style="left:72px;top:64px;display:flex;flex-direction:column;gap:2px">
+    <div style="font-weight:700;font-size:26px;letter-spacing:7px;text-transform:uppercase">${D.club.clubName}</div>
+    <div class="anton" style="font-size:60px;line-height:1;text-transform:uppercase">${D.club.teamName}</div>
+  </div>
+  ${competitionBadge(D, 110)}
+  <div class="abs" style="left:72px;right:72px;top:220px;display:flex;flex-direction:column;align-items:center;gap:30px">
+    <div style="font-weight:700;font-size:30px;letter-spacing:12px;text-transform:uppercase;opacity:.9">${D.match.matchType}</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:80px">
+      ${side(D.home)}
+      <div class="anton" style="font-size:120px;text-shadow:0 4px 14px rgba(0,0,0,.45)">VS</div>
+      ${side(D.away)}
+    </div>
+  </div>
+  <div class="abs" style="left:27px;right:27px;bottom:27px;height:150px;background:#fff;color:#111;display:grid;grid-template-columns:repeat(3,1fr)">
+    ${cell('Venue', D.match.venue.join('<br>'), false)}
+    ${cell('Kick-off', D.match.dateLabel, true)}
+    <div style="display:flex;align-items:center;justify-content:center;border-left:1px solid #ddd"><img src="${D.club.campaignLogo}" style="height:96px"></div>
+  </div>`;
+}
+
+// Pitch spots per formation, as [x%, y%] on a vertical pitch attacking upwards (so the
+// right-back is on the right). match.json lists the XI in the same order: GK, then the back
+// line right to left, then each line further forward, right to left.
+const FORMATIONS = {
+  '4-4-1-1': [[50,91],[86,73],[62,76],[38,76],[14,73],[86,50],[62,53],[38,53],[14,50],[50,32],[50,15]],
+  '4-2-3-1': [[50,91],[86,73],[62,76],[38,76],[14,73],[62,58],[38,58],[84,36],[50,38],[16,36],[50,15]],
+  '4-3-3':   [[50,91],[86,73],[62,76],[38,76],[14,73],[72,52],[50,56],[28,52],[80,24],[50,17],[20,24]],
+  '4-4-2':   [[50,91],[86,73],[62,76],[38,76],[14,73],[86,48],[62,52],[38,52],[14,48],[64,21],[36,21]],
+  '3-5-2':   [[50,91],[72,74],[50,76],[28,74],[90,48],[70,54],[50,50],[30,54],[10,48],[64,21],[36,21]]
+};
+
+function lineup(D) {
+  const xi = D.match.lineup;
+  const spots = FORMATIONS[D.match.formation] || FORMATIONS['4-4-1-1'];
+  const surname = (n) => n.split(' ').slice(-1)[0];
+  const line = 'rgba(255,255,255,.55)';
+  const pitch = `
+    <div class="abs" style="right:150px;top:150px;width:600px;height:870px;box-sizing:border-box;border:3px solid ${line};background:rgba(0,0,0,.22)">
+      <div class="abs" style="left:0;right:0;top:50%;border-top:3px solid ${line}"></div>
+      <div class="abs" style="left:50%;top:50%;width:160px;height:160px;margin:-80px 0 0 -80px;border-radius:50%;border:3px solid ${line}"></div>
+      <div class="abs" style="left:50%;top:0;width:320px;margin-left:-160px;height:140px;box-sizing:border-box;border:3px solid ${line};border-top:0"></div>
+      <div class="abs" style="left:50%;top:0;width:150px;margin-left:-75px;height:50px;box-sizing:border-box;border:3px solid ${line};border-top:0"></div>
+      <div class="abs" style="left:50%;bottom:0;width:320px;margin-left:-160px;height:140px;box-sizing:border-box;border:3px solid ${line};border-bottom:0"></div>
+      <div class="abs" style="left:50%;bottom:0;width:150px;margin-left:-75px;height:50px;box-sizing:border-box;border:3px solid ${line};border-bottom:0"></div>
+      ${xi.map((p, i) => { const [x, y] = spots[i] || [50, 50]; return `
+        <div class="abs" style="left:${x}%;top:${y}%;width:180px;margin-left:-90px;margin-top:-34px;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div class="anton" style="width:60px;height:60px;border-radius:50%;background:${i === 0 ? D.club.goalkeeperColour : '#fff'};color:${i === 0 ? '#fff' : D.kit.accent};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 4px 12px rgba(0,0,0,.45)">${p[0]}</div>
+          <div class="anton" style="font-size:24px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;text-shadow:0 2px 6px rgba(0,0,0,.7)">${surname(p[1])}</div>
+        </div>`; }).join('')}
+    </div>`;
+  const row = (p, i) => `<div style="height:46px;background:#F2F2F4;border-radius:7px;display:flex;align-items:center;gap:16px;padding:0 16px;box-shadow:0 3px 0 ${D.kit.backgroundBase}"><div class="anton" style="width:36px;height:36px;border-radius:50%;background:${i === 0 ? D.club.goalkeeperColour : D.kit.accent};color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px">${p[0]}</div><div class="anton" style="flex:1;font-size:25px;color:#111;text-transform:uppercase">${p[1]}</div>${p[2] ? `<div style="font-size:18px;font-weight:700;letter-spacing:2px;color:#777">${p[2]}</div>` : ''}</div>`;
+  const subs = (D.match.subs || []).map((p) => `${p[0]} ${p[1]}`).join(' · ');
+  return `${backdrop(D)}
+  <div class="abs" style="left:72px;top:60px;display:flex;align-items:center;gap:22px"><img src="${D.club.crest}" style="height:96px"><div><div style="font-weight:700;font-size:24px;letter-spacing:7px;text-transform:uppercase">${D.club.clubName}</div><div class="anton" style="font-size:54px;line-height:1;text-transform:uppercase">${D.club.teamName}</div></div></div>
+  <div class="abs" style="left:96px;top:196px;width:840px;display:flex;flex-direction:column;gap:6px">
+    <div class="anton" style="font-size:84px;line-height:1;text-transform:uppercase;text-shadow:0 4px 14px rgba(0,0,0,.45)">Starting XI · ${D.match.formation || ''}</div>
+    <div style="font-weight:700;font-size:26px;letter-spacing:6px;text-transform:uppercase">vs ${D.theirs.fullName}</div>
+  </div>
+  <div class="abs" style="left:96px;top:336px;width:840px;display:flex;flex-direction:column;gap:6px">${xi.map(row).join('')}</div>
+  ${subs ? `<div class="abs" style="left:96px;top:960px;width:840px;display:flex;gap:14px;align-items:center"><div style="font-weight:700;font-size:22px;letter-spacing:6px;text-transform:uppercase;opacity:.85">Subs</div><div class="anton" style="font-size:26px;text-transform:uppercase">${subs}</div></div>` : ''}
+  ${D.match.competition && D.match.competition.logo ? `<img class="abs" src="${D.match.competition.logo}" style="right:66px;top:52px;height:84px">` : ''}
+  ${pitch}`;
+}
+
+function subOurs(D) {
+  const sb = D.sub;
+  const arrow = (up, colour) => `<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="${up ? 'M13 3 L24 21 L2 21 Z' : 'M13 23 L24 5 L2 5 Z'}" fill="${colour}"/></svg>`;
+  const row = (up, label, colour, p) => `<div style="display:flex;align-items:center;gap:14px">${arrow(up, colour)}<div style="width:52px;font-size:20px;font-weight:700;letter-spacing:3px;color:${colour}">${label}</div><div class="anton" style="font-size:34px;line-height:1;text-transform:uppercase;color:#111">${p}</div></div>`;
+  return `${still(D)}
+  <div class="abs" style="left:64px;bottom:150px;display:flex;height:112px;box-shadow:0 8px 28px rgba(0,0,0,.45);border:3px solid #fff">
+    <div style="position:relative;overflow:hidden;background:${D.ours.shirt};color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px">
+      ${mosaic(16, 10, 12, D.ours.pixels, 5)}
+      <div class="anton" style="position:relative;font-size:46px;letter-spacing:3px;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.4)">SUB</div>
+      <div class="anton" style="position:relative;font-size:30px;line-height:1.1;text-shadow:0 2px 8px rgba(0,0,0,.4)">${sb.minute}</div>
+    </div>
+    <div style="background:#fff;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:0 34px 0 26px">
+      ${row(true, 'ON', '#15803D', sb.on)}
+      ${row(false, 'OFF', '#B91C1C', sb.off)}
+    </div>
+  </div>`;
+}
+
+const TEMPLATES = { scorebug, goalOurs, goalTheirs, intro, lineup, subOurs };
+
+window.renderGraphic = (kind, D) => {
+  document.getElementById('stage').innerHTML = TEMPLATES[kind](D);
+  const imgs = [...document.images].map((i) => i.complete ? null : new Promise((r) => { i.onload = r; i.onerror = r; }));
+  return Promise.all([document.fonts.ready, ...imgs]).then(() => true);
+};
+</script>
+</body>
+</html>

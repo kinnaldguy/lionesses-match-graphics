@@ -1,0 +1,93 @@
+{
+  "dateLabel": "Sun 4th Oct · 2:00pm",
+  "matchType": "League game",
+  "competition": {
+    "line1": "West Riding County",
+    "line2": "Women's FL · Division Four",
+    "logo": "assets/logos/wrcwfl.png"
+  },
+  "venue": [
+    "Guiseley School, Fieldhead Road",
+    "Guiseley, Leeds LS20 8DT"
+  ],
+  "weAreHome": false,
+  "kit": "away",
+  "opponent": {
+    "fullName": "Guiseley GFC Lionesses Development",
+    "shortName": "Guiseley Devs",
+    "crest": "assets/teams/guiseley-devs.png",
+    "shirt": "#FFFFFF",
+    "text": "#111111"
+  },
+  "formation": "4-4-1-1",
+  "lineup": [
+    [
+      "1",
+      "Kayleigh Bow",
+      "GK"
+    ],
+    [
+      "69",
+      "Joanne Binns",
+      "RB"
+    ],
+    [
+      "18",
+      "Hayley Kinnald",
+      "CB"
+    ],
+    [
+      "4",
+      "Laura Birch",
+      "CB"
+    ],
+    [
+      "24",
+      "Olivia Fall",
+      "LB"
+    ],
+    [
+      "37",
+      "Madison Green",
+      "RM"
+    ],
+    [
+      "14",
+      "Sophie Horner",
+      "RCM"
+    ],
+    [
+      "5",
+      "Morgan Myers",
+      "LCM"
+    ],
+    [
+      "15",
+      "Stephanie Varley",
+      "LM"
+    ],
+    [
+      "32",
+      "Suzanne Redshaw",
+      "CAM"
+    ],
+    [
+      "9",
+      "Maddy Rodd",
+      "ST"
+    ]
+  ],
+  "subs": [
+    [
+      "6",
+      "Philipa Kirby"
+    ],
+    [
+      "19",
+      "Ella Williamson"
+    ]
+  ],
+  "footyosCsv": "footyos.csv",
+  "still": "still.jpg",
+  "fps": 30
+}

@@ -1,0 +1,37 @@
+{
+  "clubName": "Halifax Friendly FC",
+  "teamName": "Lionesses",
+  "fullName": "Halifax Friendly FC Lionesses",
+  "shortName": "HFFC Lionesses",
+  "crest": "assets/logos/hffc.png",
+  "campaignLogo": "assets/logos/hergametoo.png",
+  "kits": {
+    "home": {
+      "shirt": "#D62C32",
+      "text": "#FFFFFF",
+      "pixels": ["#D62C32", "#D62C32", "#D62C32", "#AC262D", "#AC262D", "#F2413E", "#DA3C41", "#8E1A1D"],
+      "background": ["#8E1A1D", "#9A1D20", "#A42024", "#AE2428", "#821719", "#B5282C", "#761416"],
+      "backgroundBase": "#5E0E10",
+      "accent": "#A42024"
+    },
+    "away": {
+      "shirt": "#08519F",
+      "text": "#FFFFFF",
+      "pixels": ["#08519F", "#08519F", "#08519F", "#08519F", "#043E85", "#043E85", "#0975C6", "#1C3669", "#204278", "#1282CE"],
+      "background": ["#0E3A8C", "#123F95", "#16479F", "#1A4EA8", "#0B3480", "#1F55B0", "#0A2E73"],
+      "backgroundBase": "#0A2A66",
+      "accent": "#1A4EA8"
+    }
+  },
+  "sponsorBar": {
+    "left": [
+      { "name": "Microworld", "logo": "assets/logos/microworld.png", "height": 30, "whitePanel": true },
+      { "name": "Maid Vericlean", "logo": "assets/logos/maid_vericlean.png", "height": 46 }
+    ],
+    "right": [
+      { "name": "Nexus People", "logo": "assets/logos/nexus_white.png", "height": 36 },
+      { "name": "Simply Waste Consultants", "logo": "assets/logos/simply_waste_white.png", "height": 34 }
+    ]
+  },
+  "goalkeeperColour": "#6B1E2E"
+}
