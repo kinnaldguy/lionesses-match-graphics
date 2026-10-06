@@ -88,7 +88,9 @@ if (ko) {
 }
 if (fixture['Venue']) {
   const v = fixture['Venue'], c = v.indexOf(', ');
-  match.venue = c > 0 ? [v.slice(0, c), v.slice(c + 2)] : [v];
+  // Name on the first line; a long address (over ~40 characters) goes over two more lines.
+  const rest = c > 0 ? v.slice(c + 2) : '', r = rest.indexOf(', ');
+  match.venue = c < 0 ? [v] : rest.length > 40 && r > 0 ? [v.slice(0, c), rest.slice(0, r), rest.slice(r + 2)] : [v.slice(0, c), rest];
   fromExport.push('venue');
 }
 if (fixture['Competition']) {

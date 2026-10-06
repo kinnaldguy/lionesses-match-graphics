@@ -4,6 +4,11 @@
     "line2": "Women's FL · Division Four",
     "logo": "assets/logos/wrcwfl.png"
   },
+  "venue": [
+    "Sandylands Grass Playing Fields",
+    "Skipton Community Sports Hub",
+    "Carleton New Road, Skipton BD23 2AZ"
+  ],
   "opponent": {
     "shortName": "Skipton Devs",
     "crest": "assets/teams/skipton-devs.png"
