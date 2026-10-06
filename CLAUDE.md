@@ -13,6 +13,9 @@ Dave will send some or all of:
 - opponent full name, the short name for the score bug, crest file, kit colours
 - venue, date and kick-off, competition (league or cup)
 - home or away (decides background and our kit colours)
+  (The export now starts with fixture rows - Opponent, Home or away, Kick-off, Venue, Competition, Opponent
+  shirt, Opponent crest - and the build takes these from the CSV over match.json, so only ask for what's
+  missing. A Venue/shirt/crest row is left out when FootyOS doesn't know it. Still ask for the short name.)
 - formation and the XI in formation order (see below), plus subs — **not needed** when the FootyOS
   export has "Formation" / "Starting XI" / "Bench" rows (added on FootyOS branch
   `claude/export-lineup-positions`); the build then takes the line-up and pitch spots from the CSV

@@ -50,6 +50,60 @@ const FPS = match.fps || 30;
 const tcToFrames = (tc) => { const [h, m, s, f] = tc.split(':').map(Number); return ((h * 60 + m) * 60 + s) * FPS + f; };
 const framesToTc = (n) => { const f = n % FPS, s = Math.floor(n / FPS); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f].map((v) => String(v).padStart(2, '0')).join(':'); };
 
+// ---------- Fixture details from the export ----------
+// FootyOS (from Oct 2026) starts the CSV with fixture rows: Event = label, Player = value. They come before
+// the line-up and have no times. They are facts about this match, so they replace whatever match.json
+// carried over from the match it was copied from. Presentation stays in match.json: score-bug short name,
+// intro name, competition wording and logo, text colours.
+const FIXTURE_LABELS = ['Opponent', 'Home or away', 'Kick-off', 'Venue', 'Competition', 'Opponent shirt', 'Opponent crest'];
+const fixture = {};
+{
+  const timed = (e) => e['Clock time'] || e['Video time'] || e['Timecode'] || e['Match minute'];
+  let i = 0;
+  while (i < events.length && FIXTURE_LABELS.includes(events[i]['Event']) && !timed(events[i])) {
+    fixture[events[i]['Event']] = events[i]['Player'];
+    i++;
+  }
+  events = events.slice(i);
+}
+const fromExport = [];
+if (fixture['Opponent']) {
+  if (match.opponent.fullName && match.opponent.fullName !== fixture['Opponent'])
+    console.warn(`Opponent in the export is "${fixture['Opponent']}" but match.json says "${match.opponent.fullName}" - using the export. Check shortName, crest and colours are for them too.`);
+  match.opponent.fullName = fixture['Opponent'];
+  fromExport.push('opponent');
+}
+if (/^(home|away)$/i.test(fixture['Home or away'] || '')) {
+  match.weAreHome = /^home$/i.test(fixture['Home or away']);
+  match.kit = match.weAreHome ? 'home' : 'away';
+  fromExport.push(fixture['Home or away'].toLowerCase());
+} else if (fixture['Home or away']) console.warn(`Export says "${fixture['Home or away']}" - set weAreHome and kit in match.json by hand.`);
+const ko = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/.exec(fixture['Kick-off'] || '');
+if (ko) {
+  const d = new Date(Date.UTC(+ko[1], ko[2] - 1, +ko[3]));
+  const day = +ko[3], th = day % 10 === 1 && day !== 11 ? 'st' : day % 10 === 2 && day !== 12 ? 'nd' : day % 10 === 3 && day !== 13 ? 'rd' : 'th';
+  const h = +ko[4], m = ko[5];
+  match.dateLabel = `${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()]} ${day}${th} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()]} · ${(h % 12) || 12}:${m}${h < 12 ? 'am' : 'pm'}`;
+  fromExport.push('kick-off');
+}
+if (fixture['Venue']) {
+  const v = fixture['Venue'], c = v.indexOf(', ');
+  match.venue = c > 0 ? [v.slice(0, c), v.slice(c + 2)] : [v];
+  fromExport.push('venue');
+}
+if (fixture['Competition']) {
+  match.matchType = /friendly/i.test(fixture['Competition']) ? 'Friendly' : /cup|trophy|shield/i.test(fixture['Competition']) ? 'Cup game' : 'League game';
+  fromExport.push(`competition (${fixture['Competition']})`);
+}
+if (/^#[0-9a-f]{6}$/i.test(fixture['Opponent shirt'] || '')) {
+  match.opponent.shirt = fixture['Opponent shirt'];
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(fixture['Opponent shirt'].slice(i, i + 2), 16));
+  match.opponent.text = 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#111111' : '#FFFFFF';
+  fromExport.push('opponent shirt');
+}
+if (fixture['Opponent crest']) console.log(`Opponent crest is at ${fixture['Opponent crest']} - save it as ${match.opponent.crest || 'assets/teams/<slug>.png'} if it isn't there yet.`);
+if (!match.venue) { match.venue = ['Venue TBC']; console.warn('No venue in the export or match.json - the intro card says "Venue TBC".'); }
+
 // ---------- Sync to the footage ----------
 // Best: FootyOS "Clock time" (real time of the tap) minus the Falcon clip's start time, read from its
 // file name (match.json "videoFile", e.g. VID_20261004_140100_01_01 = recording began 14:01:00).
@@ -326,6 +380,7 @@ z.close()`, zip, gfx]);
 
   console.log(`Score: ${scoreLine()}`);
   console.log(`Synced: ${syncedBy || 'not synced (no clock times + videoFile, or kickOffAt, in match.json); times are as FootyOS logged them'}`);
+  console.log(`From the export: ${fromExport.length ? fromExport.join(', ') : 'no fixture rows'}`);
   console.log(`Line-up: ${match.formation || '?'} from ${csvXi.length ? 'the FootyOS export' : 'match.json'}`);
   console.log(`Score bug states: ${states.length}, goal pop-ups: ${goals.length} (ours ${goals.filter((g) => g.side === 'ours').length}), subs: ${subs.length}, markers: ${events.filter((e) => e['Timecode']).length}`);
   const unknown = [...new Set(events.map((e) => e['Event']))].filter((l) => !periodFor(l) && !goalSide(l) && !/save|shot|^sub|half time|full time|^end of|card|injury|penalty missed|^shootout|^formation$|^starting xi$|^bench$/i.test(l));
