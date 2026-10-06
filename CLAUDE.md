@@ -9,6 +9,7 @@ FootyOS match export. The editor (Dave) edits the XbotGo Falcon footage in DaVin
 
 Dave will send some or all of:
 - the FootyOS CSV export for the match (`<date>_Lionesses_v_<Opponent>.csv`)
+- the Falcon clip's file name (`VID_<yyyymmdd>_<hhmmss>_01_01`) - used to sync the export to the footage
 - opponent full name, the short name for the score bug, crest file, kit colours
 - venue, date and kick-off, competition (league or cup)
 - home or away (decides background and our kit colours)
@@ -43,7 +44,8 @@ Steps:
 | `formation` | `4-4-1-1`, `4-2-3-1`, `4-3-3`, `4-4-2` or `3-5-2` (spots are in `FORMATIONS` in `src/templates.html`) |
 | `lineup` | Ignored when the CSV has Starting XI rows. Otherwise `[number, name, optional position label]` in formation order: GK, back line **right to left**, then each line further forward right to left, striker last |
 | `subs` | `[number, name]` |
-| `kickOffAt` | Timeline timecode where kick-off really is in Resolve, e.g. `"01:03:42:15"`. FootyOS times are offset from the footage, so every marker and timing is shifted to match. Ask Dave for it |
+| `videoFile` | The Falcon clip's file name, e.g. `"VID_20261004_140100_01_01"` (recording started 14:01:00). With a FootyOS export that has a "Clock time" column, every event is placed at clock time minus this start (the camera syncs to Dave's phone). Minute-only rows go from their period's kick-off. Ask Dave for it every match |
+| `kickOffAt` | Timeline timecode where kick-off really is in Resolve, e.g. `"01:03:42:15"`. FootyOS times are offset from the footage, so every marker and timing is shifted to match. Fallback when there are no clock times |
 | `goalsOnly` | `true` for matches logged on the older FootyOS tracker: only goals, periods and the line-up are used: no sub pop-ups and no marker EDL |
 | `halfLength`, `extraTimeLength` | Minutes; default 45 and 15. Drive the clock start values in HOW_TO_USE |
 

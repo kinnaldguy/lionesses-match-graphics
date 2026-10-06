@@ -51,19 +51,46 @@ const tcToFrames = (tc) => { const [h, m, s, f] = tc.split(':').map(Number); ret
 const framesToTc = (n) => { const f = n % FPS, s = Math.floor(n / FPS); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f].map((v) => String(v).padStart(2, '0')).join(':'); };
 
 // ---------- Sync to the footage ----------
-// FootyOS times are from when its own recording started, which isn't when the Falcon started filming.
-// match.json "kickOffAt" is the timeline timecode where kick-off really is in Resolve (timeline starting
-// at 01:00:00:00, clip untrimmed); every marker and timing is moved by the same amount.
-const koRow = events.find((e) => /^kick-?off$/i.test(e['Event']) && e['Timecode']);
-const offset = match.kickOffAt && koRow ? tcToFrames(match.kickOffAt) - tcToFrames(koRow['Timecode']) : 0;
-if (match.kickOffAt && !koRow) console.warn('kickOffAt is set but the export has no Kick-off row with a timecode, so nothing was shifted.');
-for (const e of events) {
-  if (e['Timecode']) e['Timecode'] = framesToTc(tcToFrames(e['Timecode']) + offset);
-  if (e['Video time']) {
-    const [h, m, sec] = e['Video time'].split(':').map(Number);
-    const t = Math.round(h * 3600 + m * 60 + sec + offset / FPS);
-    e['Video time'] = `${Math.floor(t / 3600)}:${String(Math.floor(t / 60) % 60).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+// Best: FootyOS "Clock time" (real time of the tap) minus the Falcon clip's start time, read from its
+// file name (match.json "videoFile", e.g. VID_20261004_140100_01_01 = recording began 14:01:00).
+// The camera syncs its clock to Dave's phone before kick-off, so the two clocks agree.
+// Rows with no clock time but a match minute (older tracker) are placed from their period's kick-off.
+// Fallback: "kickOffAt", the timeline timecode where kick-off really is in Resolve (timeline starting at
+// 01:00:00:00, clip untrimmed); every FootyOS time is moved by the same amount.
+const secsToVt = (t) => { t = Math.max(0, Math.round(t)); return `${Math.floor(t / 3600)}:${String(Math.floor(t / 60) % 60).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+const setVideoSecs = (e, t) => { e['Video time'] = secsToVt(t); e['Timecode'] = framesToTc(tcToFrames('01:00:00:00') + Math.max(0, Math.round(t * FPS))); };
+const fileStart = (/_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/.exec(match.videoFile || '') || []).slice(1).map(Number);
+const clockMs = (v) => { const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(v || ''); return m ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6], Math.round(Number('0.' + (m[7] || '0')) * 1000)) : null; };
+let syncedBy = '';
+if (match.videoFile && !fileStart.length) console.warn(`videoFile "${match.videoFile}" has no _YYYYMMDD_HHMMSS in it, so it can't be used to sync.`);
+if (fileStart.length && events.some((e) => clockMs(e['Clock time']) != null)) {
+  const start = Date.UTC(fileStart[0], fileStart[1] - 1, fileStart[2], fileStart[3], fileStart[4], fileStart[5]);
+  const halfL = match.halfLength || 45, etL = match.extraTimeLength || 15;
+  const bases = [[/^kick-?off$/i, 0], [/2nd half kick-?off/i, halfL], [/extra time kick-?off|^et1/i, 2 * halfL], [/extra time 2nd half|^et2/i, 2 * halfL + etL]];
+  const kickoffs = [];   // [minute the period starts at, seconds into the video]
+  for (const e of events) {
+    const ms = clockMs(e['Clock time']);
+    if (ms == null) continue;
+    setVideoSecs(e, (ms - start) / 1000);
+    const b = bases.find(([re]) => re.test(e['Event']));
+    if (b) kickoffs.push([b[1], (ms - start) / 1000]);
   }
+  for (const e of events) {
+    const min = parseInt(e['Match minute'], 10);
+    if (clockMs(e['Clock time']) != null || isNaN(min)) continue;
+    const k = kickoffs.filter(([b]) => min > b || b === 0).pop();
+    if (k) setVideoSecs(e, k[1] + (min - k[0] - 0.5) * 60);
+  }
+  syncedBy = `clock times against ${match.videoFile}`;
+} else if (match.kickOffAt) {
+  const koRow = events.find((e) => /^kick-?off$/i.test(e['Event']) && e['Timecode']);
+  if (!koRow) console.warn('kickOffAt is set but the export has no Kick-off row with a timecode, so nothing was shifted.');
+  const offset = koRow ? tcToFrames(match.kickOffAt) - tcToFrames(koRow['Timecode']) : 0;
+  for (const e of events) {
+    if (e['Timecode']) e['Timecode'] = framesToTc(tcToFrames(e['Timecode']) + offset);
+    if (e['Video time']) { const [h, m, sec] = e['Video time'].split(':').map(Number); e['Video time'] = secsToVt(h * 3600 + m * 60 + sec + offset / FPS); }
+  }
+  if (offset) syncedBy = `kick-off moved to ${match.kickOffAt} (${offset > 0 ? '+' : '-'}${framesToTc(Math.abs(offset))} on every time)`;
 }
 
 // ---------- Line-up from the export (FootyOS adds these rows when the line-up is set) ----------
@@ -293,7 +320,7 @@ for f in sorted(os.listdir(sys.argv[2])): z.write(os.path.join(sys.argv[2],f),f)
 z.close()`, zip, gfx]);
 
   console.log(`Score: ${scoreLine()}`);
-  console.log(offset ? `Synced: kick-off moved to ${match.kickOffAt} (${offset > 0 ? '+' : '-'}${framesToTc(Math.abs(offset))} on every time)` : 'Synced: no kickOffAt in match.json, times are as FootyOS logged them');
+  console.log(`Synced: ${syncedBy || 'not synced (no clock times + videoFile, or kickOffAt, in match.json); times are as FootyOS logged them'}`);
   console.log(`Line-up: ${match.formation || '?'} from ${csvXi.length ? 'the FootyOS export' : 'match.json'}`);
   console.log(`Score bug states: ${states.length}, goal pop-ups: ${goals.length} (ours ${goals.filter((g) => g.side === 'ours').length}), subs: ${subs.length}, markers: ${events.filter((e) => e['Timecode']).length}`);
   const unknown = [...new Set(events.map((e) => e['Event']))].filter((l) => !periodFor(l) && !goalSide(l) && !/save|shot|^sub|half time|full time|^formation$|^starting xi$|^bench$/i.test(l));
