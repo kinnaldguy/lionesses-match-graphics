@@ -101,7 +101,7 @@ if (/^#[0-9a-f]{6}$/i.test(fixture['Opponent shirt'] || '')) {
   match.opponent.text = 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#111111' : '#FFFFFF';
   fromExport.push('opponent shirt');
 }
-if (fixture['Opponent crest']) console.log(`Opponent crest is at ${fixture['Opponent crest']} - save it as ${match.opponent.crest || 'assets/teams/<slug>.png'} if it isn't there yet.`);
+if (fixture['Opponent crest'] && !(match.opponent.crest && fs.existsSync(path.join(ROOT, match.opponent.crest)))) console.log(`Opponent crest is at ${fixture['Opponent crest']} - save it as ${match.opponent.crest || 'assets/teams/<slug>.png'} if it isn't there yet.`);
 if (!match.venue) { match.venue = ['Venue TBC']; console.warn('No venue in the export or match.json - the intro card says "Venue TBC".'); }
 
 // ---------- Sync to the footage ----------
