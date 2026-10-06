@@ -123,8 +123,9 @@ const home = match.weAreHome ? ours : theirs;
 const away = match.weAreHome ? theirs : ours;
 
 // ---------- Periods and goals ----------
-// FootyOS event labels seen so far: Kick-off, Half time, 2nd half kick-off, Full time, Goal,
-// Opposition goal, Save, Shot on/off target, Sub. Anything else that looks like a goal is
+// FootyOS event labels (FootyOS match tracker spec, 6 Oct 2026): Goal, Penalty scored/missed/saved, Own goal,
+// Opposition goal, Their own goal, Their penalty scored/missed/saved, cards, Sub, Shot on/off target, Save,
+// Injury, Shootout: ... / Shootout (them): ..., and the period rows. Anything else that looks like a goal is
 // classified below; check the console summary after each build.
 const halfLen = match.halfLength || 45;
 const etLen = match.extraTimeLength || 15;
@@ -136,8 +137,9 @@ function periodFor(label) {
   return null;
 }
 function goalSide(label) {
-  if (/opposition own goal/i.test(label)) return 'ours';
-  if (/^opposition/i.test(label) && /goal|scored/i.test(label)) return 'theirs';
+  if (/^shootout/i.test(label)) return null;   // shootout kicks don't change the score bug
+  if (/(opposition|their) own goal/i.test(label)) return 'ours';
+  if (/^(opposition|their)\b/i.test(label) && /goal|scored/i.test(label)) return 'theirs';
   if (/own goal/i.test(label)) return 'theirs';
   if (/goal|penalty scored/i.test(label) && !/goal ?kick/i.test(label)) return 'ours';
   return null;
@@ -326,7 +328,7 @@ z.close()`, zip, gfx]);
   console.log(`Synced: ${syncedBy || 'not synced (no clock times + videoFile, or kickOffAt, in match.json); times are as FootyOS logged them'}`);
   console.log(`Line-up: ${match.formation || '?'} from ${csvXi.length ? 'the FootyOS export' : 'match.json'}`);
   console.log(`Score bug states: ${states.length}, goal pop-ups: ${goals.length} (ours ${goals.filter((g) => g.side === 'ours').length}), subs: ${subs.length}, markers: ${events.filter((e) => e['Timecode']).length}`);
-  const unknown = [...new Set(events.map((e) => e['Event']))].filter((l) => !periodFor(l) && !goalSide(l) && !/save|shot|^sub|half time|full time|^formation$|^starting xi$|^bench$/i.test(l));
+  const unknown = [...new Set(events.map((e) => e['Event']))].filter((l) => !periodFor(l) && !goalSide(l) && !/save|shot|^sub|half time|full time|^end of|card|injury|penalty missed|^shootout|^formation$|^starting xi$|^bench$/i.test(l));
   if (unknown.length) console.log('Unrecognised FootyOS event labels (check they are not goals):', unknown.join(', '));
   console.log('Pack:', zip);
 })();
