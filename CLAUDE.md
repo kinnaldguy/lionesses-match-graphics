@@ -45,6 +45,7 @@ Steps:
 | `lineup` | Ignored when the CSV has Starting XI rows. Otherwise `[number, name, optional position label]` in formation order: GK, back line **right to left**, then each line further forward right to left, striker last |
 | `subs` | `[number, name]` |
 | `videoFile` | The Falcon clip's file name, e.g. `"VID_20261004_140100_01_01"` (recording started 14:01:00). With a FootyOS export that has a "Clock time" column, every event is placed at clock time minus this start (the camera syncs to Dave's phone). Minute-only rows go from their period's kick-off. Ask Dave for it every match |
+| `videoStart` | Optional, more precise than the file name: the `StartTime:` on line ~22 of the Falcon's `.track` log, e.g. `"2026-10-04 14:01:00.575"`. The log's times say "UTC" but are UK local time. Its clock agrees with the video length to 0.1 s over a match, so there's no drift to correct. Don't commit the .track file (~90 MB) |
 | `kickOffAt` | Timeline timecode where kick-off really is in Resolve, e.g. `"01:03:42:15"`. FootyOS times are offset from the footage, so every marker and timing is shifted to match. Fallback when there are no clock times |
 | `goalsOnly` | `true` for matches logged on the older FootyOS tracker: only goals, periods and the line-up are used: no sub pop-ups and no marker EDL |
 | `halfLength`, `extraTimeLength` | Minutes; default 45 and 15. Drive the clock start values in HOW_TO_USE |

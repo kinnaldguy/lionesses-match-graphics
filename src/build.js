@@ -59,12 +59,15 @@ const framesToTc = (n) => { const f = n % FPS, s = Math.floor(n / FPS); return [
 // 01:00:00:00, clip untrimmed); every FootyOS time is moved by the same amount.
 const secsToVt = (t) => { t = Math.max(0, Math.round(t)); return `${Math.floor(t / 3600)}:${String(Math.floor(t / 60) % 60).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 const setVideoSecs = (e, t) => { e['Video time'] = secsToVt(t); e['Timecode'] = framesToTc(tcToFrames('01:00:00:00') + Math.max(0, Math.round(t * FPS))); };
-const fileStart = (/_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/.exec(match.videoFile || '') || []).slice(1).map(Number);
+// "videoStart" (optional, ms precision) is the StartTime line from the Falcon's .track log; else the file name's start.
+const fileStart = match.videoStart
+  ? (/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$/.exec(match.videoStart) || []).slice(1).map(Number)
+  : (/_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/.exec(match.videoFile || '') || []).slice(1).map(Number);
 const clockMs = (v) => { const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(v || ''); return m ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6], Math.round(Number('0.' + (m[7] || '0')) * 1000)) : null; };
 let syncedBy = '';
-if (match.videoFile && !fileStart.length) console.warn(`videoFile "${match.videoFile}" has no _YYYYMMDD_HHMMSS in it, so it can't be used to sync.`);
+if ((match.videoFile || match.videoStart) && !fileStart.length) console.warn(`Can't read a start time from videoStart "${match.videoStart || ''}" / videoFile "${match.videoFile || ''}", so clock times weren't used.`);
 if (fileStart.length && events.some((e) => clockMs(e['Clock time']) != null)) {
-  const start = Date.UTC(fileStart[0], fileStart[1] - 1, fileStart[2], fileStart[3], fileStart[4], fileStart[5]);
+  const start = Date.UTC(fileStart[0], fileStart[1] - 1, fileStart[2], fileStart[3], fileStart[4], 0) + Math.round(fileStart[5] * 1000);
   const halfL = match.halfLength || 45, etL = match.extraTimeLength || 15;
   const bases = [[/^kick-?off$/i, 0], [/2nd half kick-?off/i, halfL], [/extra time kick-?off|^et1/i, 2 * halfL], [/extra time 2nd half|^et2/i, 2 * halfL + etL]];
   const kickoffs = [];   // [minute the period starts at, seconds into the video]
@@ -81,7 +84,7 @@ if (fileStart.length && events.some((e) => clockMs(e['Clock time']) != null)) {
     const k = kickoffs.filter(([b]) => min > b || b === 0).pop();
     if (k) setVideoSecs(e, k[1] + (min - k[0] - 0.5) * 60);
   }
-  syncedBy = `clock times against ${match.videoFile}`;
+  syncedBy = `clock times against video start ${match.videoStart || match.videoFile}`;
 } else if (match.kickOffAt) {
   const koRow = events.find((e) => /^kick-?off$/i.test(e['Event']) && e['Timecode']);
   if (!koRow) console.warn('kickOffAt is set but the export has no Kick-off row with a timecode, so nothing was shifted.');
