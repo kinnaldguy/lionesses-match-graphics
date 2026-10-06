@@ -1,0 +1,15 @@
+{
+  "competition": {
+    "line1": "West Riding County",
+    "line2": "Women's FL · Division Four",
+    "logo": "assets/logos/wrcwfl.png"
+  },
+  "opponent": {
+    "shortName": "Skipton Devs",
+    "crest": "assets/teams/skipton-devs.png"
+  },
+  "footyosCsv": "footyos.csv",
+  "still": "still.jpg",
+  "fps": 30,
+  "goalsOnly": true
+}
