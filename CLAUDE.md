@@ -8,8 +8,8 @@ FootyOS match export. The editor (Dave) edits the XbotGo Falcon footage in DaVin
 ## The weekly job
 
 Dave will send some or all of:
-- the FootyOS CSV export for the match (`<date>_Lionesses_v_<Opponent>.csv`)
-- the Falcon clip's file name (`VID_<yyyymmdd>_<hhmmss>_01_01`) - used to sync the export to the footage
+- the FootyOS CSV export for the match (`<date>_Lionesses_v_<Opponent>.csv`), with the "Clock time" column
+- the Falcon clip's file name (`VID_<yyyymmdd>_<hhmmss>_01_01`), and ideally its small `.vdata` file
 - opponent full name, the short name for the score bug, crest file, kit colours
 - venue, date and kick-off, competition (league or cup)
 - home or away (decides background and our kit colours)
@@ -28,6 +28,11 @@ Steps:
 4. `npm install` (first time in a session), then `node src/build.js matches/<folder>`.
    Playwright is pinned to 1.56.1 to match the Chromium preinstalled in Claude Code cloud sessions.
    On any other machine, run `npx playwright install chromium` once.
+   **Syncing to the footage (agreed with Dave, from Oct 2026):** set `videoFile` (and `videoStart` if he sent
+   the `.track` StartTime) and let the build place everything from FootyOS clock times. The console must say
+   "Synced: clock times against video start ...". The Falcon syncs its clock to Dave's phone before kick-off;
+   small adjustments afterwards are fine with him. Only fall back to `kickOffAt` (ask Dave where kick-off is
+   on his timeline) if the export has no Clock time column.
 5. Look at every PNG in `out/previews/` before sending. Check the build's console summary: the final
    score must match the real result, and any "Unrecognised FootyOS event labels" must not be goals.
 6. Send Dave the zip from `out/` and the previews. Commit the match folder (not `out/`, which is gitignored).
