@@ -56,6 +56,7 @@ Steps:
 | `videoStart` | Optional, more precise than the file name: the `StartTime:` on line ~22 of the Falcon's `.track` log, e.g. `"2026-10-04 14:01:00.575"`. The log's times say "UTC" but are UK local time. Its clock agrees with the video length to 0.1 s over a match, so there's no drift to correct. Don't commit the .track file (~90 MB) |
 | `kickOffAt` | Timeline timecode where kick-off really is in Resolve, e.g. `"01:03:42:15"`. FootyOS times are offset from the footage, so every marker and timing is shifted to match. Fallback when there are no clock times |
 | `goalsOnly` | `true` for matches logged on the older FootyOS tracker: only goals, periods and the line-up are used: no sub pop-ups and no marker EDL |
+| `fixtureOverrides` | Corrects a wrong fixture row from the export, keyed by its label, e.g. `{"Opponent": "Skipton FC Women Development"}`. Better still, get Dave to fix the record in FootyOS |
 | `halfLength`, `extraTimeLength` | Minutes; default 45 and 15. Drive the clock start values in HOW_TO_USE |
 
 ## Design rules (agreed with Dave — don't change without asking)

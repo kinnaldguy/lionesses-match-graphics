@@ -12,5 +12,7 @@
   },
   "footyosCsv": "footyos.csv",
   "still": "still.jpg",
-  "fps": 30
+  "fps": 30,
+  "videoFile": "VID_20261018_135508_01_01",
+  "fixtureOverrides": { "Opponent": "Skipton FC Women Development" }
 }

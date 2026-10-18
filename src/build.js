@@ -66,6 +66,8 @@ const fixture = {};
   }
   events = events.slice(i);
 }
+// "fixtureOverrides" in match.json corrects a wrong fixture row, keyed by its label, e.g. {"Opponent": "..."}.
+Object.assign(fixture, match.fixtureOverrides || {});
 const fromExport = [];
 if (fixture['Opponent']) {
   if (match.opponent.fullName && match.opponent.fullName !== fixture['Opponent'])
