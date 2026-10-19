@@ -1,0 +1,15 @@
+{
+  "competition": {
+    "line1": "West Riding County",
+    "line2": "Women's FL · Division Four",
+    "logo": "assets/logos/wrcwfl.png"
+  },
+  "opponent": {
+    "shortName": "Queensbury",
+    "crest": "assets/teams/queensbury-celtic.png"
+  },
+  "footyosCsv": "footyos.csv",
+  "still": "still.jpg",
+  "videoFile": "VID_20261011_135935_01_01",
+  "fps": 30
+}
